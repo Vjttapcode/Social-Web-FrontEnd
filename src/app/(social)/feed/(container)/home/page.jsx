@@ -1,42 +1,40 @@
 import { useState, useEffect } from 'react'
 import { Card, CardBody, CardHeader, CardTitle, Col, Row, Modal, Button, Form } from 'react-bootstrap'
-import Feeds from './components/Feeds'
+import { FaPlus } from 'react-icons/fa'
 import Followers from './components/Followers'
 import LoadContentButton from '@/components/LoadContentButton'
-import { FaPlus } from 'react-icons/fa'
 import { useAuthContext } from '@/context/useAuthContext'
-import placeholder from '@/assets/images/avatar/placeholder.jpg'
 
 const Home = () => {
   const { user } = useAuthContext()
 
-  // State for Create Post modal
+  // State for creating posts
   const [showModal, setShowModal] = useState(false)
   const [postContent, setPostContent] = useState('')
   const [imageFile, setImageFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  // State for all posts
+  // State for posts list
   const [posts, setPosts] = useState([])
   const [loadingPosts, setLoadingPosts] = useState(true)
   const [loadingError, setLoadingError] = useState(null)
 
-  // Fetch all posts on mount
+  // State for new comment inputs
+  const [newComments, setNewComments] = useState({})
+
+  // Fetch all posts with comments embedded
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const res = await fetch('/api/post/get-all-posts', {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
+          headers: { Authorization: `Bearer ${user.token}` },
         })
-        if (!res.ok) throw new Error(`Error ${res.status}`)
-        const json = await res.json()
-        // assume API returns { success, data: [posts] }
-        setPosts(json.data || [])
+        if (!res.ok) throw new Error(`Error fetching posts: ${res.status}`)
+        const { data } = await res.json()
+        setPosts(data)
       } catch (err) {
-        console.error('Fetch posts error:', err)
+        console.error(err)
         setLoadingError(err.message)
       } finally {
         setLoadingPosts(false)
@@ -45,6 +43,43 @@ const Home = () => {
     fetchPosts()
   }, [user.token])
 
+  // Handle comment input change per post
+  const handleCommentChange = (postId, text) => {
+    setNewComments((prev) => ({ ...prev, [postId]: text }))
+  }
+
+  // Submit new comment and update post.comments
+  const handleCommentSubmit = async (postId) => {
+    const content = (newComments[postId] || '').trim()
+    if (!content) return
+    try {
+      const res = await fetch('/api/comment/post-comment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ postId, content }),
+      })
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const { data: newComment } = await res.json()
+      setPosts((prev) => prev.map((p) => (p._id === postId ? { ...p, comments: [...(p.comments || []), newComment] } : p)))
+      setNewComments((prev) => ({ ...prev, [postId]: '' }))
+    } catch (err) {
+      console.error('Post comment failed', err)
+    }
+  }
+
+  // Handle image file selection for new post
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      setPreviewUrl(URL.createObjectURL(file))
+    }
+  }
+
+  // Open/close create post modal
   const handleOpen = () => setShowModal(true)
   const handleClose = () => {
     setShowModal(false)
@@ -53,14 +88,7 @@ const Home = () => {
     setPreviewUrl('')
   }
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setImageFile(file)
-      setPreviewUrl(URL.createObjectURL(file))
-    }
-  }
-
+  // Submit new post
   const handleSubmit = async () => {
     if (!postContent.trim() && !imageFile) return
     setSubmitting(true)
@@ -69,18 +97,14 @@ const Home = () => {
       if (imageFile) {
         const fd = new FormData()
         fd.append('image', imageFile)
-        const uploadRes = await fetch('/api/image/post-image', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${user.token}` },
-          body: fd,
-        })
-        if (!uploadRes.ok) throw new Error('Image upload failed')
-        const uploadData = await uploadRes.json()
-        imageId = uploadData.imageId
+        const upRes = await fetch('/api/image/post-image', { method: 'POST', body: fd })
+        if (!upRes.ok) throw new Error('Image upload failed')
+        const { imageId: id } = await upRes.json()
+        imageId = id
       }
-      const postBody = { userId: user.userId, content: postContent, comments: [], status: 'public' }
+      const postBody = { userId: user.userId, content: postContent, comments: [], status: true }
       if (imageId) postBody.imageId = imageId
-      const postRes = await fetch('/api/post/add-post', {
+      const res = await fetch('/api/post/add-post', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,68 +112,83 @@ const Home = () => {
         },
         body: JSON.stringify(postBody),
       })
-      if (!postRes.ok) throw new Error('Failed to create post')
-
-      // Refresh posts list
-      setLoadingPosts(true)
-      setLoadingError(null)
-      const refreshRes = await fetch('/api/post/get-all-posts', {
-        headers: { Authorization: `Bearer ${user.token}` },
-      })
-      if (!refreshRes.ok) throw new Error(`Error ${refreshRes.status}`)
-      const refreshJson = await refreshRes.json()
-      setPosts(refreshJson.data || [])
-
+      if (!res.ok) throw new Error('Failed to create post')
+      const { data: createdPost } = await res.json()
+      setPosts((prev) => [createdPost, ...prev])
       handleClose()
     } catch (err) {
-      console.error(err)
+      console.error('Create post error', err)
     } finally {
       setSubmitting(false)
-      setLoadingPosts(false)
     }
   }
 
   return (
     <>
       <Col md={8} lg={6} className="vstack gap-4">
-        {/* Create a Post Button */}
         <div className="mb-3 text-center">
           <Button variant="primary" onClick={handleOpen}>
             <FaPlus className="me-2" /> Create a Post
           </Button>
         </div>
 
-        {/* Display all posts */}
         {loadingPosts ? (
           <p>Loading posts...</p>
         ) : loadingError ? (
           <p className="text-danger">Error: {loadingError}</p>
         ) : (
           posts.map((post, idx) => (
-            <Card key={`${post._id}-${idx}`}>
+            <Card key={`${post._id}-${idx}`} className="mb-3">
               <CardHeader className="d-flex align-items-center">
                 <img
-                  src={post.info?.imageId ? `/api/image/get-image/${post.info.imageId}` : '/placeholder-avatar.jpg'}
-                  className="rounded-circle me-2"
+                  src={post.userInfo?.imageId ? `/api/image/get-image/${post.userInfo.imageId}` : '/placeholder-avatar.jpg'}
+                  alt="avatar"
                   width={40}
                   height={40}
+                  className="rounded-circle me-2"
                 />
                 <div>
-                  <strong>{post.info?.name || 'Anonymous'}</strong>
+                  <strong>{post.userInfo?.name || 'Anonymous'}</strong>
                   <br />
-                  <small>{new Date(post.createdAt).toLocaleString()}</small>
+                  <small className="text-muted">{new Date(post.createdAt).toLocaleString()}</small>
                 </div>
               </CardHeader>
               <CardBody>
                 <p>{post.content}</p>
-                {post.imageId && <img src={`/api/image/get-image/${post.imageId}`} alt="post" className="img-fluid rounded" />}
+                {post.imageId && <img src={`/api/image/get-image/${post.imageId}`} alt="post" className="img-fluid rounded mb-3" />}
+
+                {/* Comments list */}
+                {post.comments?.map((c) => (
+                  <div key={c._id} className="border rounded p-2 mb-2">
+                    <small className="text-muted">{new Date(c.createdAt).toLocaleString()}</small>
+                    <p className="mb-0">{c.content}</p>
+                  </div>
+                ))}
+
+                {/* New comment form */}
+                <Form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    handleCommentSubmit(post._id)
+                  }}>
+                  <Form.Group className="d-flex gap-2">
+                    <Form.Control
+                      type="text"
+                      placeholder="Add a comment…"
+                      value={newComments[post._id] || ''}
+                      onChange={(e) => handleCommentChange(post._id, e.target.value)}
+                    />
+                    <Button size="sm" onClick={() => handleCommentSubmit(post._id)}>
+                      Post
+                    </Button>
+                  </Form.Group>
+                </Form>
               </CardBody>
             </Card>
           ))
         )}
       </Col>
 
-      {/* Sidebar */}
       <Col lg={3}>
         <Row className="g-4">
           <Col sm={6} lg={12}>
@@ -157,9 +196,7 @@ const Home = () => {
           </Col>
           <Col sm={6} lg={12}>
             <Card>
-              <CardHeader className="pb-0 border-0">
-                <CardTitle className="mb-0">Today’s news</CardTitle>
-              </CardHeader>
+              <CardTitle className="mb-0">Today's news</CardTitle>
               <CardBody>
                 <LoadContentButton name="View all latest news" />
               </CardBody>
@@ -190,7 +227,7 @@ const Home = () => {
               <Form.Control type="file" accept="image/*" onChange={handleImageChange} />
             </Form.Group>
             {previewUrl && (
-              <div className="mb-3 text-center">
+              <div className="text-center mb-3">
                 <img src={previewUrl} alt="preview" className="img-fluid rounded" />
               </div>
             )}
