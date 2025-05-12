@@ -1,27 +1,46 @@
-import { lazy, Suspense } from "react";
-const TopHeader = lazy(() => import("@/components/layout/TopHeader"));
-import { profilePanelLinksData1 } from '@/assets/data/layout';
-import Messaging from '@/components/layout/Messaging';
-import ProfilePanel from '@/components/layout/ProfilePanel';
-import { useLayoutContext } from '@/context/useLayoutContext';
-import useViewPort from '@/hooks/useViewPort';
-import { Col, Container, Dropdown, DropdownDivider, DropdownItem, DropdownMenu, DropdownToggle, FormControl, Offcanvas, OffcanvasBody, OffcanvasHeader, OffcanvasTitle, Row } from 'react-bootstrap';
-import { BsBell, BsChatLeftTextFill, BsCheckSquare, BsGear, BsPencilSquare, BsPeople, BsSearch, BsSlashCircle, BsThreeDots, BsVolumeUpFill } from 'react-icons/bs';
-import { FaSlidersH } from 'react-icons/fa';
-import { FaXmark } from 'react-icons/fa6';
-import FallbackLoading from "@/components/FallbackLoading";
-import Preloader from "@/components/Preloader";
-const FeedLayout = ({
-  children
-}) => {
-  const {
-    messagingOffcanvas,
-    startOffcanvas
-  } = useLayoutContext();
-  const {
-    width
-  } = useViewPort();
-  return <>
+import { lazy, Suspense } from 'react'
+const TopHeader = lazy(() => import('@/components/layout/TopHeader'))
+import { profilePanelLinksData1 } from '@/assets/data/layout'
+import Messaging from '@/components/layout/Messaging'
+import ProfilePanel from '@/components/layout/ProfilePanel'
+import { useLayoutContext } from '@/context/useLayoutContext'
+import useViewPort from '@/hooks/useViewPort'
+import {
+  Col,
+  Container,
+  Dropdown,
+  DropdownDivider,
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
+  FormControl,
+  Offcanvas,
+  OffcanvasBody,
+  OffcanvasHeader,
+  OffcanvasTitle,
+  Row,
+} from 'react-bootstrap'
+import {
+  BsBell,
+  BsChatLeftTextFill,
+  BsCheckSquare,
+  BsGear,
+  BsPencilSquare,
+  BsPeople,
+  BsSearch,
+  BsSlashCircle,
+  BsThreeDots,
+  BsVolumeUpFill,
+} from 'react-icons/bs'
+import { FaSlidersH } from 'react-icons/fa'
+import { FaXmark } from 'react-icons/fa6'
+import FallbackLoading from '@/components/FallbackLoading'
+import Preloader from '@/components/Preloader'
+const FeedLayout = ({ children }) => {
+  const { messagingOffcanvas, startOffcanvas } = useLayoutContext()
+  const { width } = useViewPort()
+  return (
+    <>
       <Suspense fallback={<Preloader />}>
         <TopHeader />
       </Suspense>
@@ -30,7 +49,13 @@ const FeedLayout = ({
           <Row className="g-4">
             <Col lg={3}>
               <div className="d-flex align-items-center d-lg-none">
-                <button onClick={startOffcanvas.toggle} className="border-0 bg-transparent" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSideNavbar" aria-controls="offcanvasSideNavbar">
+                <button
+                  onClick={startOffcanvas.toggle}
+                  className="border-0 bg-transparent"
+                  type="button"
+                  data-bs-toggle="offcanvas"
+                  data-bs-target="#offcanvasSideNavbar"
+                  aria-controls="offcanvasSideNavbar">
                   <span className="btn btn-primary">
                     <FaSlidersH />
                   </span>
@@ -39,9 +64,12 @@ const FeedLayout = ({
               </div>
 
               <nav className="navbar navbar-expand-lg mx-0">
-                {width >= 992 ? <div className="d-block px-2 px-lg-0">
+                {width >= 992 ? (
+                  <div className="d-block px-2 px-lg-0">
                     <ProfilePanel links={profilePanelLinksData1} />
-                  </div> : <Offcanvas show={startOffcanvas.open} placement="start" onHide={startOffcanvas.toggle} tabIndex={-1} id="offcanvasSideNavbar">
+                  </div>
+                ) : (
+                  <Offcanvas show={startOffcanvas.open} placement="start" onHide={startOffcanvas.toggle} tabIndex={-1} id="offcanvasSideNavbar">
                     <OffcanvasHeader closeButton />
 
                     <OffcanvasBody className="d-block px-2 px-lg-0">
@@ -49,20 +77,33 @@ const FeedLayout = ({
                         <ProfilePanel links={profilePanelLinksData1} />
                       </div>
                     </OffcanvasBody>
-                  </Offcanvas>}
+                  </Offcanvas>
+                )}
               </nav>
             </Col>
-         <Suspense fallback={<FallbackLoading />}>{children}</Suspense>   
+            <Suspense fallback={<FallbackLoading />}>{children}</Suspense>
           </Row>
         </Container>
       </main>
       <div className="d-none d-lg-block">
-        <a onClick={messagingOffcanvas.toggle} className="icon-md btn btn-primary position-fixed end-0 bottom-0 me-5 mb-5" role="button" aria-controls="offcanvasChat">
+        <a
+          onClick={messagingOffcanvas.toggle}
+          className="icon-md btn btn-primary position-fixed end-0 bottom-0 me-5 mb-5"
+          role="button"
+          aria-controls="offcanvasChat">
           <span>
             <BsChatLeftTextFill />
           </span>
         </a>
-        <Offcanvas show={messagingOffcanvas.open} onHide={messagingOffcanvas.toggle} placement="end" className="offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabIndex={-1} id="offcanvasChat">
+        <Offcanvas
+          show={messagingOffcanvas.open}
+          onHide={messagingOffcanvas.toggle}
+          placement="end"
+          className="offcanvas-end"
+          data-bs-scroll="true"
+          data-bs-backdrop="false"
+          tabIndex={-1}
+          id="offcanvasChat">
           <OffcanvasHeader className="d-flex justify-content-between">
             <OffcanvasTitle as="h5">Messaging</OffcanvasTitle>
             <div className="d-flex">
@@ -70,7 +111,12 @@ const FeedLayout = ({
                 <BsPencilSquare />
               </a>
               <Dropdown>
-                <DropdownToggle as="a" className="content-none btn btn-secondary-soft-hover py-1 px-2" id="chatAction" data-bs-toggle="dropdown" aria-expanded="false">
+                <DropdownToggle
+                  as="a"
+                  className="content-none btn btn-secondary-soft-hover py-1 px-2"
+                  id="chatAction"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">
                   <BsThreeDots />
                 </DropdownToggle>
                 <DropdownMenu className="dropdown-menu-end" aria-labelledby="chatAction">
@@ -125,6 +171,7 @@ const FeedLayout = ({
           </div>
         </Offcanvas>
       </div>
-    </>;
-};
-export default FeedLayout;
+    </>
+  )
+}
+export default FeedLayout

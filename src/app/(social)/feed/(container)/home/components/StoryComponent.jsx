@@ -1,13 +1,11 @@
-import { Link } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
-import Zuck from 'zuck.js';
-import 'zuck.js/dist/zuck.css';
-import 'zuck.js/dist/skins/snapgram.css';
-const StoryComponent = ({
-  stories
-}) => {
-  const storiesRef = useRef(null);
-  const storiesFunc = useRef(null);
+import { Link } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import Zuck from 'zuck.js'
+import 'zuck.js/dist/zuck.css'
+import 'zuck.js/dist/skins/snapgram.css'
+const StoryComponent = ({ stories }) => {
+  const storiesRef = useRef(null)
+  const storiesFunc = useRef(null)
   useEffect(() => {
     if (storiesRef.current && !storiesFunc.current) {
       storiesFunc.current = new Zuck(storiesRef.current, {
@@ -24,17 +22,19 @@ const StoryComponent = ({
         rtl: false,
         localStorage: false,
         backNative: true,
-        stories: stories
-      });
+        stories: stories,
+      })
     }
 
     // return () => {
     // storiesFunc.current?.remove();
     // }
-  }, [storiesRef.current]);
-  return <div ref={storiesRef} className="storiesWrapper  stories-square   carousel scroll-enable stories">
-      {stories.map(story => {
-      return <div key={story.id} className="story " data-id={story.id} data-photo={story.photo} data-last-updated={story.time}>
+  }, [storiesRef.current])
+  return (
+    <div ref={storiesRef} className="storiesWrapper  stories-square   carousel scroll-enable stories">
+      {stories.map((story) => {
+        return (
+          <div key={story.id} className="story " data-id={story.id} data-photo={story.photo} data-last-updated={story.time}>
             <Link className="item-link" to="">
               <span className="item-preview">
                 <img loading="eager" src={story.photo} alt="post" />
@@ -47,16 +47,26 @@ const StoryComponent = ({
               </span>
             </Link>
             <ul className="items">
-              {story.items.map(storyItem => {
-            return <li key={storyItem.id} data-id={storyItem.id}>
-                    <a href={storyItem.src} data-link data-linktext data-time={storyItem.time} data-type={storyItem.type} data-length={storyItem.length}>
+              {story.items.map((storyItem) => {
+                return (
+                  <li key={storyItem.id} data-id={storyItem.id}>
+                    <a
+                      href={storyItem.src}
+                      data-link
+                      data-linktext
+                      data-time={storyItem.time}
+                      data-type={storyItem.type}
+                      data-length={storyItem.length}>
                       <img loading="lazy" src={storyItem.preview} alt="story-item" />
                     </a>
-                  </li>;
-          })}
+                  </li>
+                )
+              })}
             </ul>
-          </div>;
-    })}
-    </div>;
-};
-export default StoryComponent;
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+export default StoryComponent

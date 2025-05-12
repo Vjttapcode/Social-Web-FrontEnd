@@ -62,7 +62,11 @@ const useSignIn = () => {
           variant: 'success',
         })
 
-        redirectUser()
+        if (!data.userInfoId) {
+          navigate('/setup-profile')
+        } else {
+          redirectUser()
+        }
       } else {
         // hiển thị lỗi từ server
         showNotification({

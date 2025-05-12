@@ -6,6 +6,7 @@ import FeedLayout from '@/layouts/FeedLayout'
 import SocialLayout from '@/layouts/SocialLayout'
 import ProfileLayout from '@/layouts/ProfileLayout'
 import SettingLayout from '@/layouts/SettingLayout'
+import SetupProfilePage from '../layouts/SetupProfilePage'
 const AppRouter = (props) => {
   const { isAuthenticated } = useAuthContext()
   return (
@@ -16,6 +17,18 @@ const AppRouter = (props) => {
       ))}
 
       {/* Route can xac thuc */}
+      <Route
+        path="/setup-profile"
+        element={
+          isAuthenticated ? (
+            <OtherLayout>
+              <SetupProfilePage />
+            </OtherLayout>
+          ) : (
+            <Navigate to="auth-advance/sign-in" replace />
+          )
+        }
+      />
       {(feedRoutes || []).map((route, idx) => (
         <Route
           key={idx + route.name}

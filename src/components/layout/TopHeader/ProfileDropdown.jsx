@@ -59,18 +59,6 @@ const ProfileDropdown = () => {
             Settings &amp; Privacy
           </DropdownItem>
         </li>
-        {/* <li>
-          <DropdownItem href={developedByLink} rel="noreferrer" target="_blank">
-            <BsLifePreserver className="fa-fw me-2" />
-            Support
-          </DropdownItem>
-        </li> */}
-        {/* <li>
-          <DropdownItem href="" target="_blank" rel="noreferrer">
-            <BsCardText className="fa-fw me-2" />
-            Documentation
-          </DropdownItem>
-        </li> */}
         <DropdownDivider />
         <li>
           <DropdownItem className="bg-danger-soft-hover" onClick={removeSession}>

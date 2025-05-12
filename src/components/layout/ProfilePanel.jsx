@@ -2,7 +2,10 @@ import { Card, CardBody, CardFooter } from 'react-bootstrap'
 import placeholder from '@/assets/images/avatar/placeholder.jpg'
 import bgBannerImg from '@/assets/images/bg/01.jpg'
 import { Link } from 'react-router-dom'
+import { useAuthContext } from '../../context/useAuthContext'
 const ProfilePanel = ({ links }) => {
+  const { userInfo, avatarUrl } = useAuthContext()
+
   return (
     <>
       <Card className="overflow-hidden h-100">
@@ -20,15 +23,15 @@ const ProfilePanel = ({ links }) => {
           <div className="text-center">
             <div className="avatar avatar-lg mt-n5 mb-3">
               <span role="button">
-                <img height={64} width={64} src={placeholder} alt="avatar" className="avatar-img rounded border border-white border-3" />
+                <img height={64} width={64} src={avatarUrl || placeholder} alt="avatar" className="avatar-img rounded border border-white border-3" />
               </span>
             </div>
 
             <h5 className="mb-0">
-              <Link to="">User </Link>
+              <Link to="/profile/feed">{userInfo?.name || 'User'} </Link>
             </h5>
-            <small>Web Developer</small>
-            <p className="mt-3">I&apos;d love to change the world, but they won&apos;t give me the source code.</p>
+            <small>{userInfo?.university || 'Your school'}</small>
+            <p className="mt-3">{userInfo?.bio || 'Love coding!'}</p>
 
             <div className="hstack gap-2 gap-xl-3 justify-content-center">
               <div>
@@ -54,7 +57,7 @@ const ProfilePanel = ({ links }) => {
             {links.map((item, idx) => (
               <li key={item.name + idx} className="nav-item">
                 <Link className="nav-link" to={item.link}>
-                  <img src={item.image} alt="icon" height={20} width={20} className="me-2 h-20px fa-fw" />
+                  <img src={item.image} alt="icon" height={40} width={40} className="me-2 h-20px fa-fw" />
                   <span>{item.name} </span>
                 </Link>
               </li>

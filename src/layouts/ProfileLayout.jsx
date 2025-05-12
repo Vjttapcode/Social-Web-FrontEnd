@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 const TopHeader = lazy(() => import('@/components/layout/TopHeader'))
 import GlightBox from '@/components/GlightBox'
 import { useFetchData } from '@/hooks/useFetchData'
@@ -34,6 +34,7 @@ import {
   BsPencilFill,
   BsPersonX,
   BsThreeDots,
+  Bs0CircleFill,
 } from 'react-icons/bs'
 import { FaPlus } from 'react-icons/fa6'
 import { PROFILE_MENU_ITEMS } from '@/assets/data/menu-items'
@@ -49,40 +50,42 @@ import { experienceData } from '@/assets/data/layout'
 import { Link, useLocation } from 'react-router-dom'
 import FallbackLoading from '@/components/FallbackLoading'
 import Preloader from '@/components/Preloader'
-const Experience = () => {
-  return (
-    <Card>
-      <CardHeader className="d-flex justify-content-between border-0">
-        <h5 className="card-title">Experience</h5>
-        <Button variant="primary-soft" size="sm">
-          <FaPlus />
-        </Button>
-      </CardHeader>
-      <CardBody className="position-relative pt-0">
-        {experienceData.map((experience, idx) => (
-          <div className="d-flex" key={idx}>
-            <div className="avatar me-3">
-              <span role="button">
-                <img className="avatar-img rounded-circle" src={experience.logo} alt="" />
-              </span>
-            </div>
-            <div>
-              <h6 className="card-title mb-0">
-                <Link to=""> {experience.title} </Link>
-              </h6>
-              <p className="small">
-                {experience.description}
-                <Link className="btn btn-primary-soft btn-xs ms-2" to="">
-                  Edit
-                </Link>
-              </p>
-            </div>
-          </div>
-        ))}
-      </CardBody>
-    </Card>
-  )
-}
+import EditProfileModal from '../components/EditProfileModal'
+import { useAuthContext } from '../context/useAuthContext'
+// const Experience = () => {
+//   return (
+//     <Card>
+//       <CardHeader className="d-flex justify-content-between border-0">
+//         <h5 className="card-title">Experience</h5>
+//         <Button variant="primary-soft" size="sm">
+//           <FaPlus />
+//         </Button>
+//       </CardHeader>
+//       <CardBody className="position-relative pt-0">
+//         {experienceData.map((experience, idx) => (
+//           <div className="d-flex" key={idx}>
+//             <div className="avatar me-3">
+//               <span role="button">
+//                 <img className="avatar-img rounded-circle" src={experience.logo} alt="" />
+//               </span>
+//             </div>
+//             <div>
+//               <h6 className="card-title mb-0">
+//                 <Link to=""> {experience.title} </Link>
+//               </h6>
+//               <p className="small">
+//                 {experience.description}
+//                 <Link className="btn btn-primary-soft btn-xs ms-2" to="">
+//                   Edit
+//                 </Link>
+//               </p>
+//             </div>
+//           </div>
+//         ))}
+//       </CardBody>
+//     </Card>
+//   )
+// }
 const Photos = () => {
   return (
     <Card>
@@ -173,6 +176,8 @@ const Friends = () => {
 }
 const ProfileLayout = ({ children }) => {
   const { pathname } = useLocation()
+  const [editShow, setEditShow] = useState(false)
+  const { userInfo, avatarUrl } = useAuthContext()
   return (
     <>
       <Suspense fallback={<Preloader />}>
@@ -197,19 +202,20 @@ const ProfileLayout = ({ children }) => {
                   <div className="d-sm-flex align-items-start text-center text-sm-start">
                     <div>
                       <div className="avatar avatar-xxl mt-n5 mb-3">
-                        <img className="avatar-img rounded-circle border border-white border-3" src={placeholder} alt="avatar" />
+                        <img className="avatar-img rounded-circle border border-white border-3" src={avatarUrl || placeholder} alt="avatar" />
                       </div>
                     </div>
                     <div className="ms-sm-4 mt-sm-3">
                       <h1 className="mb-0 h5">
-                        Sam Lanson <BsPatchCheckFill className="text-success small" />
+                        {userInfo?.name || 'User'} <BsPatchCheckFill className="text-success small" />
                       </h1>
-                      <p>250 connections</p>
+                      <p>{userInfo?.university || 'Your school'}</p>
                     </div>
                     <div className="d-flex mt-3 justify-content-center ms-sm-auto">
-                      <Button variant="danger-soft" className="me-2" type="button">
+                      <Button variant="danger-soft" className="me-2" type="button" onClick={() => setEditShow(true)}>
                         <BsPencilFill size={19} className="pe-1" /> Edit profile
                       </Button>
+                      <EditProfileModal show={editShow} onHide={() => setEditShow(false)} />
                     </div>
                   </div>
                   <ul className="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
@@ -250,24 +256,21 @@ const ProfileLayout = ({ children }) => {
                       <CardTitle>About</CardTitle>
                     </CardHeader>
                     <CardBody className="position-relative pt-0">
-                      <p>He moonlights difficult engrossed it, sportsmen. Interested has all Devonshire difficulty gay assistance joy.</p>
+                      <p>{userInfo?.bio || 'Your description'}</p>
                       <ul className="list-unstyled mt-3 mb-0">
                         <li className="mb-2">
-                          <BsCalendarDate size={18} className="fa-fw pe-1" /> Born: <strong> October 20, 1990 </strong>
+                          <Bs0CircleFill size={18} className="fa-fw pe-1" /> Name: <strong> {userInfo?.name || 'Your name'} </strong>
                         </li>
                         <li className="mb-2">
-                          <BsHeart size={18} className="fa-fw pe-1" /> Status: <strong> Single </strong>
-                        </li>
-                        <li>
-                          <BsEnvelope size={18} className="fa-fw pe-1" /> Email: <strong> webestica@gmail.com </strong>
+                          <Bs0CircleFill size={18} className="fa-fw pe-1" /> Uni: <strong> {userInfo?.university || 'Your school'} </strong>
                         </li>
                       </ul>
                     </CardBody>
                   </Card>
                 </Col>
-                <Col md={6} lg={12}>
+                {/* <Col md={6} lg={12}>
                   <Experience />
-                </Col>
+                </Col> */}
                 <Col md={6} lg={12}>
                   <Photos />
                 </Col>
