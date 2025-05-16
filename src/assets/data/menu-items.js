@@ -187,18 +187,18 @@ export const APP_MENU_ITEMS = [
       //   url: '/feed/videos/details',
       //   parentKey: 'pages',
       // },
-      {
-        key: 'pages-blog',
-        label: 'Blog',
-        url: '/blogs',
-        parentKey: 'pages',
-      },
-      {
-        key: 'pages-blog-details',
-        label: 'Blog Details',
-        url: '/blogs/51',
-        parentKey: 'pages',
-      },
+      // {
+      //   key: 'pages-blog',
+      //   label: 'Blog',
+      //   url: '/blogs',
+      //   parentKey: 'pages',
+      // },
+      // {
+      //   key: 'pages-blog-details',
+      //   label: 'Blog Details',
+      //   url: '/blogs/51',
+      //   parentKey: 'pages',
+      // },
       // {
       //   key: 'pages-divider-1',
       //   isDivider: true,

@@ -90,34 +90,78 @@ const Home = () => {
 
   // Submit new post
   const handleSubmit = async () => {
+    // don’t proceed if there’s nothing to post
     if (!postContent.trim() && !imageFile) return
     setSubmitting(true)
+
     try {
       let imageId = null
+      console.log('🔄 Starting submit. imageFile =', imageFile)
+
+      // 1) UPLOAD IMAGE IF PRESENT
       if (imageFile) {
+        console.log('➡️ Uploading image…')
         const fd = new FormData()
         fd.append('image', imageFile)
-        const upRes = await fetch('/api/image/post-image', { method: 'POST', body: fd })
-        if (!upRes.ok) throw new Error('Image upload failed')
-        const { imageId: id } = await upRes.json()
-        imageId = id
+
+        const uploadRes = await fetch('/api/image/post-image', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            Accept: 'application/json',
+            // NOTE: do NOT set Content-Type for FormData here
+          },
+          body: fd,
+        })
+
+        // parse JSON even on error so we can inspect
+        const upJson = await uploadRes.json().catch(() => null)
+        console.log('📤 uploadRes.ok =', uploadRes.ok, 'upJson =', upJson)
+
+        if (!uploadRes.ok) {
+          throw new Error(`Đăng tải ảnh thất bại: ${upJson?.error || JSON.stringify(upJson)}`)
+        }
+        if (!upJson?.imageId) {
+          throw new Error(`Upload response missing imageId: ${JSON.stringify(upJson)}`)
+        }
+
+        imageId = upJson.imageId
+        console.log('✅ Received imageId =', imageId)
       }
-      const postBody = { userId: user.userId, content: postContent, comments: [], status: true }
-      if (imageId) postBody.imageId = imageId
+
+      // 2) BUILD POST BODY (always include imageId for inspection)
+      const postBody = {
+        userId: user.userId,
+        content: postContent,
+        comments: [],
+        status: true,
+        imageId, // will be either an ID string or null
+      }
+      console.log('📝 postBody =', postBody)
+
+      // 3) CREATE THE POST
       const res = await fetch('/api/post/add-post', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`,
+          Accept: 'application/json',
         },
         body: JSON.stringify(postBody),
       })
-      if (!res.ok) throw new Error('Failed to create post')
-      const { data: createdPost } = await res.json()
+
+      const postJson = await res.json().catch(() => null)
+      console.log('✏️ create-post ok =', res.ok, 'response =', postJson)
+
+      if (!res.ok) {
+        throw new Error(`Tạo bài viết thất bại: ${postJson?.error || JSON.stringify(postJson)}`)
+      }
+
+      const createdPost = postJson.data
       setPosts((prev) => [createdPost, ...prev])
       handleClose()
     } catch (err) {
-      console.error('Create post error', err)
+      console.error('Create post error:', err)
     } finally {
       setSubmitting(false)
     }
@@ -126,7 +170,7 @@ const Home = () => {
   return (
     <>
       <Col md={8} lg={6} className="vstack gap-4">
-        <div className="mb-3 text-center">
+        <div className="mb-3">
           <Button variant="primary" onClick={handleOpen}>
             <FaPlus className="me-2" /> Create a Post
           </Button>
@@ -193,14 +237,6 @@ const Home = () => {
         <Row className="g-4">
           <Col sm={6} lg={12}>
             <Followers />
-          </Col>
-          <Col sm={6} lg={12}>
-            <Card>
-              <CardTitle className="mb-0">Today's news</CardTitle>
-              <CardBody>
-                <LoadContentButton name="View all latest news" />
-              </CardBody>
-            </Card>
           </Col>
         </Row>
       </Col>
