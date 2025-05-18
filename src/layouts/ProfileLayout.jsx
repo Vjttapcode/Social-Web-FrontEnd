@@ -3,177 +3,144 @@ const TopHeader = lazy(() => import('@/components/layout/TopHeader'))
 import GlightBox from '@/components/GlightBox'
 import { useFetchData } from '@/hooks/useFetchData'
 import clsx from 'clsx'
-import {
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Col,
-  Container,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
-  Row,
-} from 'react-bootstrap'
-import {
-  BsBookmark,
-  BsBriefcase,
-  BsCalendar2Plus,
-  BsCalendarDate,
-  BsChatLeftText,
-  BsEnvelope,
-  BsFileEarmarkPdf,
-  BsGear,
-  BsGeoAlt,
-  BsHeart,
-  BsLock,
-  BsPatchCheckFill,
-  BsPencilFill,
-  BsPersonX,
-  BsThreeDots,
-  Bs0CircleFill,
-} from 'react-icons/bs'
-import { FaPlus } from 'react-icons/fa6'
+import { Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Container, Row } from 'react-bootstrap'
+import { BsChatLeftText, BsPatchCheckFill, BsPencilFill, BsPersonX, Bs0CircleFill } from 'react-icons/bs'
 import { PROFILE_MENU_ITEMS } from '@/assets/data/menu-items'
 import { getAllUsers } from '@/helpers/data'
 import placeholder from '@/assets/images/avatar/placeholder.jpg'
 import background5 from '@/assets/images/bg/05.jpg'
-import album1 from '@/assets/images/albums/01.jpg'
-import album2 from '@/assets/images/albums/02.jpg'
-import album3 from '@/assets/images/albums/03.jpg'
-import album4 from '@/assets/images/albums/04.jpg'
-import album5 from '@/assets/images/albums/05.jpg'
-import { experienceData } from '@/assets/data/layout'
 import { Link, useLocation } from 'react-router-dom'
 import FallbackLoading from '@/components/FallbackLoading'
 import Preloader from '@/components/Preloader'
 import EditProfileModal from '../components/EditProfileModal'
 import { useAuthContext } from '../context/useAuthContext'
-// const Experience = () => {
+import { useEffect } from 'react'
+const Photos = () => {
+  const [images, setImages] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // Decode JWT to extract userId
+  const token = localStorage.getItem('token')
+  let userId = null
+  if (token) {
+    try {
+      const payload = JSON.parse(window.atob(token.split('.')[1]))
+      userId = payload.userId
+    } catch (e) {
+      console.error('Invalid token format', e)
+    }
+  }
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      if (!userId) {
+        setLoading(false)
+        return
+      }
+      try {
+        const res = await fetch(`/api/post/get-post/${userId}`)
+        if (!res.ok) throw new Error(`Error fetching posts: ${res.status}`)
+        const json = await res.json()
+        const posts = Array.isArray(json.data) ? json.data : [json.data]
+        // Gather image IDs
+        const ids = posts.reduce((acc, p) => {
+          if (Array.isArray(p.imageId) && p.imageId.length) acc.push(...p.imageId)
+          else if (typeof p.imageId === 'string') acc.push(p.imageId)
+          return acc
+        }, [])
+        setImages(ids)
+      } catch (err) {
+        console.error('Failed to load images:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchImages()
+  }, [userId])
+
+  if (loading) {
+    return <div className="text-center py-5">Loading photos...</div>
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="d-sm-flex justify-content-between border-0">
+          <CardTitle>Photos</CardTitle>
+          <Link to="/profile/media">
+            <Button variant="primary-soft" size="sm">
+              See all photos
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardBody className="position-relative pt-0">
+          <Row className="g-2">
+            {images.length === 0 && <p className="text-center w-100">No photos to display.</p>}
+            {images.map((id) => (
+              <Col xs={6} md={4} lg={3} key={id}>
+                <GlightBox href={`/api/image/get-image/${id}`} data-gallery="image-popup">
+                  <img
+                    src={`/api/image/get-image/${id}`}
+                    alt="album"
+                    className="rounded img-fluid"
+                    style={{ maxHeight: 150, objectFit: 'cover', width: '100%' }}
+                  />
+                </GlightBox>
+              </Col>
+            ))}
+          </Row>
+        </CardBody>
+      </Card>
+    </>
+  )
+}
+// const Friends = () => {
+//   const allFriends = useFetchData(getAllUsers)
 //   return (
 //     <Card>
-//       <CardHeader className="d-flex justify-content-between border-0">
-//         <h5 className="card-title">Experience</h5>
+//       <CardHeader className="d-sm-flex justify-content-between align-items-center border-0">
+//         <CardTitle>
+//           Friends <span className="badge bg-danger bg-opacity-10 text-danger">230</span>
+//         </CardTitle>
 //         <Button variant="primary-soft" size="sm">
-//           <FaPlus />
+//           See all friends
 //         </Button>
 //       </CardHeader>
 //       <CardBody className="position-relative pt-0">
-//         {experienceData.map((experience, idx) => (
-//           <div className="d-flex" key={idx}>
-//             <div className="avatar me-3">
-//               <span role="button">
-//                 <img className="avatar-img rounded-circle" src={experience.logo} alt="" />
-//               </span>
-//             </div>
-//             <div>
-//               <h6 className="card-title mb-0">
-//                 <Link to=""> {experience.title} </Link>
-//               </h6>
-//               <p className="small">
-//                 {experience.description}
-//                 <Link className="btn btn-primary-soft btn-xs ms-2" to="">
-//                   Edit
-//                 </Link>
-//               </p>
-//             </div>
-//           </div>
-//         ))}
+//         <Row className="g-3">
+//           {allFriends?.slice(0, 4).map((friend, idx) => (
+//             <Col xs={6} key={idx}>
+//               <Card className="shadow-none text-center h-100">
+//                 <CardBody className="p-2 pb-0">
+//                   <div
+//                     className={clsx('avatar avatar-xl', {
+//                       'avatar-story': friend.isStory,
+//                     })}>
+//                     <span role="button">
+//                       <img className="avatar-img rounded-circle" src={friend.avatar} alt="" />
+//                     </span>
+//                   </div>
+//                   <h6 className="card-title mb-1 mt-3">
+//                     <Link to=""> {friend.name} </Link>
+//                   </h6>
+//                   <p className="mb-0 small lh-sm">{friend.mutualCount} mutual connections</p>
+//                 </CardBody>
+//                 <div className="card-footer p-2 border-0">
+//                   <button className="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Send message">
+//                     <BsChatLeftText />
+//                   </button>
+//                   <button className="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove friend">
+//                     <BsPersonX />
+//                   </button>
+//                 </div>
+//               </Card>
+//             </Col>
+//           ))}
+//         </Row>
 //       </CardBody>
 //     </Card>
 //   )
 // }
-const Photos = () => {
-  return (
-    <Card>
-      <CardHeader className="d-sm-flex justify-content-between border-0">
-        <CardTitle>Photos</CardTitle>
-        <Button variant="primary-soft" size="sm">
-          See all photo
-        </Button>
-      </CardHeader>
-      <CardBody className="position-relative pt-0">
-        <Row className="g-2">
-          <Col xs={6}>
-            <GlightBox href={album1} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album1} alt="album-image" />
-            </GlightBox>
-          </Col>
-          <Col xs={6}>
-            <GlightBox href={album2} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album2} alt="album-image" />
-            </GlightBox>
-          </Col>
-          <Col xs={4}>
-            <GlightBox href={album3} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album3} alt="album-image" />
-            </GlightBox>
-          </Col>
-          <Col xs={4}>
-            <GlightBox href={album4} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album4} alt="album-image" />
-            </GlightBox>
-          </Col>
-          <Col xs={4}>
-            <GlightBox href={album5} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album5} alt="album-image" />
-            </GlightBox>
-          </Col>
-        </Row>
-      </CardBody>
-    </Card>
-  )
-}
-const Friends = () => {
-  const allFriends = useFetchData(getAllUsers)
-  return (
-    <Card>
-      <CardHeader className="d-sm-flex justify-content-between align-items-center border-0">
-        <CardTitle>
-          Friends <span className="badge bg-danger bg-opacity-10 text-danger">230</span>
-        </CardTitle>
-        <Button variant="primary-soft" size="sm">
-          See all friends
-        </Button>
-      </CardHeader>
-      <CardBody className="position-relative pt-0">
-        <Row className="g-3">
-          {allFriends?.slice(0, 4).map((friend, idx) => (
-            <Col xs={6} key={idx}>
-              <Card className="shadow-none text-center h-100">
-                <CardBody className="p-2 pb-0">
-                  <div
-                    className={clsx('avatar avatar-xl', {
-                      'avatar-story': friend.isStory,
-                    })}>
-                    <span role="button">
-                      <img className="avatar-img rounded-circle" src={friend.avatar} alt="" />
-                    </span>
-                  </div>
-                  <h6 className="card-title mb-1 mt-3">
-                    <Link to=""> {friend.name} </Link>
-                  </h6>
-                  <p className="mb-0 small lh-sm">{friend.mutualCount} mutual connections</p>
-                </CardBody>
-                <div className="card-footer p-2 border-0">
-                  <button className="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Send message">
-                    <BsChatLeftText />
-                  </button>
-                  <button className="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove friend">
-                    <BsPersonX />
-                  </button>
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </CardBody>
-    </Card>
-  )
-}
 const ProfileLayout = ({ children }) => {
   const { pathname } = useLocation()
   const [editShow, setEditShow] = useState(false)
@@ -218,17 +185,6 @@ const ProfileLayout = ({ children }) => {
                       <EditProfileModal show={editShow} onHide={() => setEditShow(false)} />
                     </div>
                   </div>
-                  <ul className="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
-                    <li className="list-inline-item">
-                      <BsBriefcase className="me-1" /> Lead Developer
-                    </li>
-                    <li className="list-inline-item">
-                      <BsGeoAlt className="me-1" /> New Hampshire
-                    </li>
-                    <li className="list-inline-item">
-                      <BsCalendar2Plus className="me-1" /> Joined on Nov 26, 2019
-                    </li>
-                  </ul>
                 </CardBody>
                 <CardFooter className="card-footer mt-3 pt-2 pb-0">
                   <ul className="nav nav-bottom-line align-items-center justify-content-center justify-content-md-start mb-0 border-0">
@@ -268,15 +224,12 @@ const ProfileLayout = ({ children }) => {
                     </CardBody>
                   </Card>
                 </Col>
-                {/* <Col md={6} lg={12}>
-                  <Experience />
-                </Col> */}
                 <Col md={6} lg={12}>
                   <Photos />
                 </Col>
-                <Col md={6} lg={12}>
+                {/* <Col md={6} lg={12}>
                   <Friends />
-                </Col>
+                </Col> */}
               </Row>
             </Col>
           </Row>

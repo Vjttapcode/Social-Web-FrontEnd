@@ -7,8 +7,6 @@ import { Form, Button, Image, Row, Col } from 'react-bootstrap'
 import { useAuthContext } from '@/context/useAuthContext'
 import { useNavigate } from 'react-router-dom'
 
-const API_ROOT = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-
 const schema = yup.object({
   name: yup.string().required('Vui lòng nhập tên'),
   bio: yup.string().required('Vui lòng nhập tiểu sử'),

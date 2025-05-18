@@ -90,7 +90,6 @@ const Home = () => {
 
   // Submit new post
   const handleSubmit = async () => {
-    // don’t proceed if there’s nothing to post
     if (!postContent.trim() && !imageFile) return
     setSubmitting(true)
 

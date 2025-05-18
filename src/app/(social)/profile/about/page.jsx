@@ -1,147 +1,45 @@
-import { Button, Card, CardBody, CardHeader, CardTitle, Col, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Row } from 'react-bootstrap';
-import { interestsData } from './data';
-import PageMetaData from '@/components/PageMetaData';
-import { BsBriefcase, BsCalendarDate, BsEnvelope, BsGeoAlt, BsHeart, BsPencilSquare, BsPlusCircleDotted, BsThreeDots, BsTrash } from 'react-icons/bs';
-import { Link } from 'react-router-dom';
-const Interests = () => {
-  return <Card>
-      <CardHeader className="d-sm-flex justify-content-between border-0 pb-0">
-        <CardTitle>Interests</CardTitle>
-        <Button variant="primary-soft" size="sm">
-          
-          See all
-        </Button>
-      </CardHeader>
-      <CardBody>
-        <Row className="g-4">
-          {interestsData.map((item, idx) => <Col sm={6} lg={4} key={idx}>
-              <div className="d-flex align-items-center position-relative">
-                <div className="avatar">
-                  <img className="avatar-img" src={item.image} alt="image" />
-                </div>
-                <div className="ms-2">
-                  <h6 className="mb-0">
-                    
-                    <Link className="stretched-link" to="">
-                      {item.name}
-                    </Link>
-                  </h6>
-                  <p className="small mb-0">{item.description}</p>
-                </div>
-              </div>
-            </Col>)}
-        </Row>
-      </CardBody>
-    </Card>;
-};
-const ActionDropdown = () => {
-  return <Dropdown className="ms-auto">
-      <DropdownToggle as="a" className="nav nav-link text-secondary mb-0" role="button" id="aboutAction" data-bs-toggle="dropdown" aria-expanded="false">
-        <BsThreeDots />
-      </DropdownToggle>
-      <DropdownMenu className="dropdown-menu-end" aria-labelledby="aboutAction">
-        <li>
-          <DropdownItem>
-            
-            <BsPencilSquare size={22} className="fa-fw pe-2" />
-            Edit
-          </DropdownItem>
-        </li>
-        <li>
-          <DropdownItem>
-            
-            <BsTrash size={22} className="fa-fw pe-2" />
-            Delete
-          </DropdownItem>
-        </li>
-      </DropdownMenu>
-    </Dropdown>;
-};
+import { Card, CardHeader, CardBody, CardSubtitle, CardTitle, CardText, Container } from 'react-bootstrap'
+import PageMetaData from '@/components/PageMetaData'
+import { useAuthContext } from '../../../../context/useAuthContext'
+
 const About = () => {
-  return <>
-    <PageMetaData title='About' />
-      <Card>
-        <CardHeader className="border-0 pb-0">
-          <CardTitle> Profile Info</CardTitle>
-        </CardHeader>
-        <CardBody>
-          <div className="rounded border px-3 py-2 mb-3">
-            <div className="d-flex align-items-center justify-content-between">
-              <h6>Overview</h6>
-              <ActionDropdown />
-            </div>
-            <p>
-              He moonlights difficult engrossed it, sportsmen. Interested has all Devonshire difficulty gay assistance joy. Handsome met debating sir
-              dwelling age material. As style lived he worse dried. Offered related so visitors we private removed. Moderate do subjects to distance.
-            </p>
-          </div>
-          <Row className="g-4">
-            <Col sm={6}>
-              <div className="d-flex align-items-center rounded border px-3 py-2">
-                <p className="mb-0">
-                  <BsCalendarDate className="fa-fw me-2" /> Born: <strong> October 20, 1990 </strong>
-                </p>
-                <ActionDropdown />
-              </div>
-            </Col>
-            <Col sm={6}>
-              <div className="d-flex align-items-center rounded border px-3 py-2">
-                <p className="mb-0">
-                  <BsHeart className="fa-fw me-2" /> Status: <strong> Single </strong>
-                </p>
-                <ActionDropdown />
-              </div>
-            </Col>
-            <Col sm={6}>
-              <div className="d-flex align-items-center rounded border px-3 py-2">
-                <p className="mb-0">
-                  <BsBriefcase className="fa-fw me-2" /> <strong> Lead Developer </strong>
-                </p>
-                <ActionDropdown />
-              </div>
-            </Col>
-            <Col sm={6}>
-              <div className="d-flex align-items-center rounded border px-3 py-2">
-                <p className="mb-0">
-                  <BsGeoAlt className="fa-fw me-2" /> Lives in: <strong> New Hampshire </strong>
-                </p>
-                <ActionDropdown />
-              </div>
-            </Col>
-            <Col sm={6}>
-              <div className="d-flex align-items-center rounded border px-3 py-2">
-                <p className="mb-0">
-                  <BsGeoAlt className="fa-fw me-2" /> Joined on: <strong> Nov 26, 2019 </strong>
-                </p>
-                <ActionDropdown />
-              </div>
-            </Col>
-            <Col sm={6}>
-              <div className="d-flex align-items-center rounded border px-3 py-2">
-                <p className="mb-0">
-                  <BsEnvelope className="fa-fw me-2" /> Email: <strong> webestica@gmail.com </strong>
-                </p>
-                <ActionDropdown />
-              </div>
-            </Col>
-            <Col sm={6} className="position-relative">
-              <Link className="btn btn-dashed rounded w-100 icons-center justify-content-center" to="">
-                
-                <BsPlusCircleDotted className="me-1" />
-                Add a workplace
-              </Link>
-            </Col>
-            <Col sm={6} className="position-relative">
-              <Link className="btn btn-dashed rounded w-100 icons-center justify-content-center" to="">
-                
-                <BsPlusCircleDotted className="me-1" />
-                Add a education
-              </Link>
-            </Col>
-          </Row>
-        </CardBody>
-      </Card>
-      <Interests />
-    </>;
-};
-export default About;
+  const { userInfo, avatarUrl } = useAuthContext()
+
+  return (
+    <>
+      <PageMetaData title="About" />
+      <Container className="py-4">
+        <Card className="text-center shadow-sm mb-5 position-relative">
+          <div className="bg-primary w-100" style={{ height: '120px', borderTopLeftRadius: '.25rem', borderTopRightRadius: '.25rem' }} />
+          <img
+            src={avatarUrl}
+            alt="User Avatar"
+            style={{
+              position: 'absolute',
+              top: '80px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '120px',
+              height: '120px',
+              borderRadius: '50%',
+              border: '5px solid white',
+              backgroundColor: '#fff',
+            }}
+          />
+          <CardHeader className="border-0 pt-5" />
+          <CardBody className="pt-3">
+            <CardTitle as="h3" className="mb-1">
+              {userInfo?.name || 'Your name'}
+            </CardTitle>
+            <CardSubtitle className="mb-3 text-muted">{userInfo?.university || 'Your school'}</CardSubtitle>
+            <CardText className="mx-auto px-3" style={{ maxWidth: 600 }}>
+              {userInfo?.bio || 'Tell us more about you'}
+            </CardText>
+          </CardBody>
+        </Card>
+      </Container>
+    </>
+  )
+}
+
+export default About

@@ -3,8 +3,6 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchAvatarBlob, fetchUserInfo } from '../services/UserInfoService'
 
-// const AuthContext = createContext(undefined)
-
 const AuthContext = createContext()
 
 export function useAuthContext() {
@@ -46,19 +44,12 @@ export function AuthProvider({ children }) {
   }
 
   const saveSession = (session) => {
-    // luôn ghi token vào localStorage
     localStorage.setItem('token', session.token)
-    // cookie chỉ cần lưu phần còn lại (ví dụ userId, email, userInfoId,…)
     const { token, ...rest } = session
     setCookie(authSessionKey, JSON.stringify(rest))
-    // cập nhật state user có đủ token + phần khác
     setUser({ ...rest, token })
     loadUserInfo({ ...rest, token })
   }
-  // const saveSession = (user) => {
-  //   setCookie(authSessionKey, JSON.stringify(user))
-  //   setUser(user)
-  // }
 
   const removeSession = () => {
     deleteCookie(authSessionKey)
@@ -68,12 +59,7 @@ export function AuthProvider({ children }) {
     setAvatarUrl(null)
     navigate('/auth-advance/sign-in')
   }
-  // const removeSession = () => {
-  //   deleteCookie(authSessionKey)
-  //   localStorage.removeItem('token')
-  //   setUser(undefined)
-  //   navigate('/auth-advance/sign-in')
-  // }
+
   useEffect(() => {
     if (user) loadUserInfo(user)
   }, [])

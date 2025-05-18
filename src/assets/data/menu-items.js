@@ -11,26 +11,20 @@ export const PROFILE_MENU_ITEMS = [
     url: '/profile/about',
     parentKey: 'pages-profile',
   },
-  {
-    key: 'profile-connections',
-    label: 'Connections',
-    url: '/profile/connections',
-    badge: {
-      text: '300',
-      variant: 'success',
-    },
-    parentKey: 'pages-profile',
-  },
+  // {
+  //   key: 'profile-connections',
+  //   label: 'Connections',
+  //   url: '/profile/connections',
+  //   badge: {
+  //     text: '300',
+  //     variant: 'success',
+  //   },
+  //   parentKey: 'pages-profile',
+  // },
   {
     key: 'profile-media',
     label: 'Media',
     url: '/profile/media',
-    parentKey: 'pages-profile',
-  },
-  {
-    key: 'profile-activity',
-    label: 'Activity',
-    url: '/profile/activity',
     parentKey: 'pages-profile',
   },
 ]
@@ -46,13 +40,6 @@ export const APP_MENU_ITEMS = [
         url: '/feed/home',
         parentKey: 'demos',
       },
-      // {
-      //   key: 'home-classic',
-      //   label: 'Home Classic',
-      //   url: '/classic',
-      //   disabled: true,
-      //   parentKey: 'demos',
-      // },
       {
         key: 'home-post',
         label: 'Home Post',
