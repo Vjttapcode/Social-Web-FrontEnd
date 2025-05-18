@@ -96,12 +96,12 @@ export const APP_MENU_ITEMS = [
         url: '/feed/albums',
         parentKey: 'pages',
       },
-      {
-        key: 'pages-celebration',
-        label: 'Celebration',
-        url: '/feed/celebration',
-        parentKey: 'pages',
-      },
+      // {
+      //   key: 'pages-celebration',
+      //   label: 'Celebration',
+      //   url: '/feed/celebration',
+      //   parentKey: 'pages',
+      // },
       {
         key: 'pages-messaging',
         label: 'Messaging',
@@ -335,9 +335,9 @@ export const APP_MENU_ITEMS = [
   //   ],
   // },
   {
-    key: 'my-network',
+    key: 'personal-feed',
     isTitle: true,
-    label: 'My Network',
-    url: '/profile/connections',
+    label: 'Personal Feed',
+    url: '/profile/feed',
   },
 ]

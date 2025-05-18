@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react'
-import ChoicesFormInput from '@/components/form/ChoicesFormInput'
-
-import useToggle from '@/hooks/useToggle'
 import { useAuthContext } from '@/context/useAuthContext'
+import useToggle from '@/hooks/useToggle'
 import {
   Button,
   Card,
   CardBody,
   CardFooter,
   CardHeader,
-  CardTitle,
   Col,
   Modal,
   ModalBody,
@@ -24,20 +21,21 @@ import {
   TabPane,
   Form,
 } from 'react-bootstrap'
-import { BsGlobe, BsLock, BsPeople } from 'react-icons/bs'
+import { BsGlobe, BsLock } from 'react-icons/bs'
 import { FaPlus } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
 import placeholderImg from '@/assets/images/avatar/placeholder.jpg'
-import { FaPencil } from 'react-icons/fa6'
 
+/** Component đại diện cho 1 nhóm */
 const GroupCard = ({ group }) => {
-  const { image, logo, memberCount, members, name, ppd, type, isJoin } = group
+  const { bannerUrl, logoUrl, memberCount, members = [], name, ppd, type, isJoin } = group
+
   return (
-    <Card>
+    <Card className="h-100">
       <div
         className="h-80px rounded-top"
         style={{
-          backgroundImage: `url(${image})`,
+          backgroundImage: `url(${bannerUrl || placeholderImg})`,
           backgroundPosition: 'center',
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
@@ -45,15 +43,15 @@ const GroupCard = ({ group }) => {
       />
       <CardBody className="text-center pt-0">
         <div className="avatar avatar-lg mt-n5 mb-3">
-          <Link to="/feed/groups/details">
-            <img className="avatar-img rounded-circle border border-white border-3 bg-white" src={logo} alt="group" />
+          <Link to={`/feed/groups/${group._id}`}>
+            <img className="avatar-img rounded-circle border border-white border-3 bg-white" src={logoUrl || placeholderImg} alt={name} />
           </Link>
         </div>
         <h5 className="mb-0">
-          <Link to="/feed/groups/details">{name}</Link>
+          <Link to={`/feed/groups/${group._id}`}>{name}</Link>
         </h5>
-        <small className="icons-center gap-1">
-          {type === 'Private' ? <BsLock size={17} className="pe-1" /> : <BsGlobe size={18} className="pe-1" />} {type} Group
+        <small className="d-flex align-items-center justify-content-center gap-1 text-muted">
+          {type === 'Private' ? <BsLock /> : <BsGlobe />} {type} Group
         </small>
         <div className="hstack gap-2 gap-xl-3 justify-content-center mt-3">
           <div>
@@ -63,52 +61,60 @@ const GroupCard = ({ group }) => {
           <div className="vr" />
           <div>
             <h6 className="mb-0">{ppd}</h6>
-            <small>Posts per day</small>
+            <small>Posts/day</small>
           </div>
         </div>
         <ul className="avatar-group list-unstyled align-items-center justify-content-center mb-0 mt-3">
-          {members.map((avatar, idx) => (
-            <li className="avatar avatar-xs" key={idx}>
-              <img className="avatar-img rounded-circle" src={avatar} alt="avatar" />
+          {members.slice(0, 5).map((m, i) => (
+            <li className="avatar avatar-xs" key={i}>
+              <img className="avatar-img rounded-circle" src={m.avatarUrl || placeholderImg} alt={m.name} />
             </li>
           ))}
-          <li className="avatar avatar-xs">
-            <div className="avatar-img rounded-circle bg-primary">
-              <span className="smaller text-white position-absolute top-50 start-50 translate-middle">+{Math.floor(Math.random() * 30)}</span>
-            </div>
-          </li>
+          {members.length > 5 && (
+            <li className="avatar avatar-xs">
+              <div className="avatar-img rounded-circle bg-primary">
+                <span className="smaller text-white position-absolute top-50 start-50 translate-middle">+{members.length - 5}</span>
+              </div>
+            </li>
+          )}
         </ul>
       </CardBody>
       <CardFooter className="text-center">
         <Button variant={isJoin ? 'danger-soft' : 'success-soft'} size="sm">
-          {isJoin ? 'Leave' : 'Join'} group
+          {isJoin ? 'Leave' : 'Join'}
         </Button>
       </CardFooter>
     </Card>
   )
 }
 
+/** Component chính hiển thị & tạo nhóm */
 const AllGroups = () => {
   const { user } = useAuthContext()
   const { isTrue: isOpen, toggle } = useToggle()
 
-  // State for fetched groups
+  // 1. Tab active
+  const [activeTab, setActiveTab] = useState('created')
+
+  // 2. States nhóm
   const [allGroups, setAllGroups] = useState([])
-  const [loadingGroups, setLoadingGroups] = useState(true)
+  const [createdGroups, setCreatedGroups] = useState([])
+  const [otherGroups, setOtherGroups] = useState([])
+  const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
 
-  // Create Group form state
+  // 3. States Create Group
   const [groupName, setGroupName] = useState('')
   const [description, setDescription] = useState('')
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState('')
   const [creating, setCreating] = useState(false)
-  const [error, setError] = useState('')
+  const [createError, setCreateError] = useState('')
 
-  // Effect: fetch all groups directly without helper
+  /** Fetch và phân tách groups */
   useEffect(() => {
     const fetchGroups = async () => {
-      setLoadingGroups(true)
+      setLoading(true)
       setLoadError('')
       try {
         const res = await fetch('/api/group/get-all-groups', {
@@ -117,20 +123,26 @@ const AllGroups = () => {
             Authorization: `Bearer ${user.token}`,
           },
         })
-        if (!res.ok) throw new Error(`Error ${res.status}`)
         const json = await res.json()
-        setAllGroups(json.data || [])
+        if (!res.ok) throw new Error(json.message || `Error ${res.status}`)
+
+        const groups = json.data || []
+        setAllGroups(groups)
+
+        // **CHÍNH XÁC** filter theo creator ID
+        setCreatedGroups(groups.filter((g) => g.admins?.[0]?._id === user.userId))
+        setOtherGroups(groups.filter((g) => g.admins?.[0]?._id !== user.userId))
       } catch (err) {
         console.error('Fetch groups failed', err)
         setLoadError(err.message)
       } finally {
-        setLoadingGroups(false)
+        setLoading(false)
       }
     }
     fetchGroups()
-  }, [user.token])
+  }, [user.token, user.id])
 
-  // Image input handler
+  /** Preview file */
   const handleFileChange = (e) => {
     const f = e.target.files?.[0]
     if (f) {
@@ -139,11 +151,15 @@ const AllGroups = () => {
     }
   }
 
-  // Create group API call
+  /** Tạo group mới, chỉ cập nhật state cục bộ */
   const handleCreateGroup = async () => {
-    if (!groupName.trim()) return setError('Group name is required')
+    if (!groupName.trim()) {
+      setCreateError('Group name is required')
+      return
+    }
     setCreating(true)
-    setError('')
+    setCreateError('')
+
     try {
       let imageId = null
       if (file) {
@@ -154,9 +170,9 @@ const AllGroups = () => {
           headers: { Authorization: `Bearer ${user.token}` },
           body: fd,
         })
-        if (!upRes.ok) throw new Error('Image upload failed')
-        const { imageId: id } = await upRes.json()
-        imageId = id
+        const upJson = await upRes.json()
+        if (!upRes.ok) throw new Error(upJson.message || 'Image upload failed')
+        imageId = upJson.imageId
       }
 
       const body = { name: groupName, description, imageId }
@@ -168,136 +184,116 @@ const AllGroups = () => {
         },
         body: JSON.stringify(body),
       })
-      if (!res.ok) {
-        const { error: msg } = await res.json()
-        throw new Error(msg || 'Group creation failed')
-      }
-      // reload list
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.message || 'Group creation failed')
+
+      const newGroup = json.data
+
+      // **CẬP NHẬT LOCAL STATE**
+      setAllGroups((prev) => [newGroup, ...prev])
+      setCreatedGroups((prev) => [newGroup, ...prev])
+      setOtherGroups((prev) => prev.filter((g) => g._id !== newGroup._id))
+
+      // Chuyển về tab "My Created"
+      setActiveTab('created')
+
+      // Đóng modal & reset form
       toggle()
       setGroupName('')
       setDescription('')
       setFile(null)
       setPreview('')
-      // refetch groups
-      const reloadRes = await fetch('/api/group/get-all-groups', {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-      })
-      const reloadJson = await reloadRes.json()
-      setAllGroups(reloadJson.data || [])
     } catch (err) {
-      console.error(err)
-      setError(err.message)
+      console.error('Create group failed', err)
+      setCreateError(err.message)
     } finally {
       setCreating(false)
     }
   }
 
-  const GroupNotFound = () => (
-    <div className="my-sm-5 py-sm-5 text-center">
-      <BsPeople className="display-1 text-body-secondary" />
-      <h4 className="mt-2 mb-3 text-body">No group found</h4>
-      <Button variant="primary-soft" size="sm" onClick={toggle}>
-        Click here to add
-      </Button>
-    </div>
-  )
-
   return (
     <>
       <CardBody>
         <Card>
-          <CardHeader className="border-0 pb-0">
-            <Row className="g-2">
-              <Col lg={2}>
-                <h1 className="h4 card-title mb-lg-0">Groups</h1>
-              </Col>
-              <Col sm={6} lg={3} className="ms-lg-auto">
-                <ChoicesFormInput
-                  options={{ searchEnabled: false }}
-                  className="form-select js-choice choice-select-text-none"
-                  data-search-enabled="false">
-                  <option value="AB">Alphabetical</option>
-                  <option value="NG">Newest group</option>
-                  <option value="RA">Recently active</option>
-                  <option value="SG">Suggested</option>
-                </ChoicesFormInput>
-              </Col>
-              <Col sm={6} lg={3}>
-                <Button variant="primary-soft" className="ms-auto w-100" onClick={toggle}>
-                  <FaPlus className="pe-1" /> Create Group
-                </Button>
-              </Col>
-            </Row>
+          <CardHeader className="d-flex align-items-center justify-content-between border-0 pb-0">
+            <h4 className="card-title mb-0">Groups</h4>
+            <Button variant="primary-soft" onClick={toggle} type="button">
+              <FaPlus className="me-1" /> Create Group
+            </Button>
           </CardHeader>
+
           <CardBody>
-            <TabContainer defaultActiveKey="tab-1">
-              <Nav className="nav-tabs nav-bottom-line justify-content-center justify-content-md-start">
-                <NavItem>
-                  <NavLink eventKey="tab-1">Friends&apos; groups</NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink eventKey="tab-2">Suggested for you</NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink eventKey="tab-3">Popular near you</NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink eventKey="tab-4">More suggestions</NavLink>
-                </NavItem>
-              </Nav>
-              <TabContent className="mb-0 pb-0">
-                <TabPane eventKey="tab-1" className="fade">
-                  <Row className="g-4">
-                    {allGroups?.slice(0, 5).map((group, idx) => (
-                      <Col sm={6} lg={4} key={idx}>
-                        <GroupCard group={group} />
-                      </Col>
-                    ))}
-                  </Row>
-                </TabPane>
-                <TabPane eventKey="tab-2" className="fade">
-                  <Row className="g-4">
-                    {allGroups?.slice(5, 8).map((group, idx) => (
-                      <Col sm={6} lg={4} key={idx}>
-                        <GroupCard group={group} />
-                      </Col>
-                    ))}
-                  </Row>
-                </TabPane>
-                <TabPane eventKey="tab-3" className="fade">
-                  <GroupNotFound />
-                </TabPane>
-                <TabPane eventKey="tab-4" className="fade">
-                  <GroupNotFound />
-                </TabPane>
-              </TabContent>
-            </TabContainer>
+            {loading && <p>Loading groups...</p>}
+            {loadError && <p className="text-danger">Error: {loadError}</p>}
+
+            {!loading && !loadError && (
+              <TabContainer activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+                <Nav variant="tabs">
+                  <NavItem>
+                    <NavLink eventKey="created">My Groups</NavLink>
+                  </NavItem>
+                  <NavItem>
+                    <NavLink eventKey="others">Other Groups</NavLink>
+                  </NavItem>
+                </Nav>
+
+                <TabContent className="mt-4">
+                  <TabPane eventKey="created">
+                    {createdGroups.length > 0 ? (
+                      <Row className="g-4">
+                        {createdGroups.map((grp, i) => (
+                          <Col sm={6} lg={4} key={i}>
+                            <GroupCard group={grp} />
+                          </Col>
+                        ))}
+                      </Row>
+                    ) : (
+                      <div className="text-center py-5">Bạn chưa tạo nhóm nào.</div>
+                    )}
+                  </TabPane>
+
+                  <TabPane eventKey="others">
+                    {otherGroups.length > 0 ? (
+                      <Row className="g-4">
+                        {otherGroups.map((grp, i) => (
+                          <Col sm={6} lg={4} key={i}>
+                            <GroupCard group={grp} />
+                          </Col>
+                        ))}
+                      </Row>
+                    ) : (
+                      <div className="text-center py-5">Không có nhóm nào khác.</div>
+                    )}
+                  </TabPane>
+                </TabContent>
+              </TabContainer>
+            )}
           </CardBody>
         </Card>
       </CardBody>
 
+      {/* Modal tạo nhóm */}
       <Modal show={isOpen} onHide={toggle} centered>
         <ModalHeader closeButton>
           <Modal.Title>Create Group</Modal.Title>
         </ModalHeader>
         <ModalBody>
-          <Form>
+          <Form onSubmit={(e) => e.preventDefault()}>
             <Form.Group className="mb-3">
               <Form.Label>Group name</Form.Label>
               <Form.Control type="text" placeholder="Add group name here" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Group picture</Form.Label>
-              <Form.Control type="file" accept=".png, .jpg, .jpeg" onChange={handleFileChange} />
+              <Form.Control type="file" accept=".png,.jpg,.jpeg" onChange={handleFileChange} />
               {preview && (
                 <div className="mt-3 text-center">
                   <img src={preview} alt="preview" className="img-fluid rounded-circle shadow" width={100} height={100} />
                 </div>
               )}
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Group description</Form.Label>
               <Form.Control
@@ -308,14 +304,15 @@ const AllGroups = () => {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </Form.Group>
-            {error && <p className="text-danger">{error}</p>}
+
+            {createError && <p className="text-danger">{createError}</p>}
           </Form>
         </ModalBody>
         <ModalFooter>
-          <Button variant="light" onClick={toggle} disabled={creating}>
+          <Button variant="light" onClick={toggle} disabled={creating} type="button">
             Cancel
           </Button>
-          <Button variant="success-soft" onClick={handleCreateGroup} disabled={creating}>
+          <Button variant="success-soft" onClick={handleCreateGroup} disabled={creating} type="button">
             {creating ? 'Creating...' : 'Create now'}
           </Button>
         </ModalFooter>
