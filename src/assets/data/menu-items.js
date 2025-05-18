@@ -40,12 +40,6 @@ export const APP_MENU_ITEMS = [
         url: '/feed/home',
         parentKey: 'demos',
       },
-      {
-        key: 'home-post',
-        label: 'Home Post',
-        url: '/posts',
-        parentKey: 'demos',
-      },
       // {
       //   key: 'home-video',
       //   label: 'Home Video',
@@ -144,12 +138,12 @@ export const APP_MENU_ITEMS = [
         url: '/feed/groups',
         parentKey: 'pages',
       },
-      {
-        key: 'pages-group-details',
-        label: 'Group Details',
-        url: '/feed/groups/2001',
-        parentKey: 'pages',
-      },
+      // {
+      //   key: 'pages-group-details',
+      //   label: 'Group Details',
+      //   url: '/feed/groups/2001',
+      //   parentKey: 'pages',
+      // },
       // {
       //   key: 'pages-post-videos',
       //   label: 'Post Videos',
@@ -162,24 +156,24 @@ export const APP_MENU_ITEMS = [
       //   url: '/feed/post-videos/details',
       //   parentKey: 'pages',
       // },
-      {
-        key: 'pages-post-details',
-        label: 'Post Details',
-        url: '/feed/post-details',
-        parentKey: 'pages',
-      },
+      // {
+      //   key: 'pages-post-details',
+      //   label: 'Post Details',
+      //   url: '/feed/post-details',
+      //   parentKey: 'pages',
+      // },
       // {
       //   key: 'pages-video-details',
       //   label: 'Video Details',
       //   url: '/feed/videos/details',
       //   parentKey: 'pages',
       // },
-      // {
-      //   key: 'pages-blog',
-      //   label: 'Blog',
-      //   url: '/blogs',
-      //   parentKey: 'pages',
-      // },
+      {
+        key: 'pages-blog',
+        label: 'Blog',
+        url: '/blogs',
+        parentKey: 'pages',
+      },
       // {
       //   key: 'pages-blog-details',
       //   label: 'Blog Details',

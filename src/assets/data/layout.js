@@ -24,11 +24,11 @@ export const profilePanelLinksData1 = [
     name: 'Personal Feed',
     link: '/profile/feed',
   },
-  {
-    image: personImg,
-    name: 'Connections',
-    link: '/profile/connections',
-  },
+  // {
+  //   image: personImg,
+  //   name: 'Connections',
+  //   link: '/profile/connections',
+  // },
   //  {
   //   image: calendarImg,
   //   name: 'Events',
@@ -39,11 +39,11 @@ export const profilePanelLinksData1 = [
     name: 'Groups',
     link: '/feed/groups',
   },
-  {
-    image: notificationImg,
-    name: 'Notifications',
-    link: '/notifications',
-  },
+  // {
+  //   image: notificationImg,
+  //   name: 'Notifications',
+  //   link: '/notifications',
+  // },
   {
     image: cogImg,
     name: 'Settings',
@@ -98,11 +98,11 @@ export const profilePanelLinksData2 = [
   },
 ]
 export const settingPanelLinksData = [
-  {
-    image: personImg,
-    name: 'Account',
-    link: '/settings/account',
-  },
+  // {
+  //   image: personImg,
+  //   name: 'Account',
+  //   link: '/settings/account',
+  // },
   {
     image: notificationImg,
     name: 'Notification',

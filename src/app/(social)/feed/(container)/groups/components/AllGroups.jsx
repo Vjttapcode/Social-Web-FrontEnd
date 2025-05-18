@@ -27,7 +27,7 @@ import { Link } from 'react-router-dom'
 import placeholderImg from '@/assets/images/avatar/placeholder.jpg'
 
 /** Component đại diện cho 1 nhóm */
-const GroupCard = ({ group }) => {
+const GroupCard = ({ group, onJoin, onLeave, processingGroupId, onDelete, deletingGroupId }) => {
   const { bannerUrl, logoUrl, memberCount, members = [], name, ppd, type, isJoin } = group
 
   return (
@@ -80,9 +80,27 @@ const GroupCard = ({ group }) => {
         </ul>
       </CardBody>
       <CardFooter className="text-center">
-        <Button variant={isJoin ? 'danger-soft' : 'success-soft'} size="sm">
-          {isJoin ? 'Leave' : 'Join'}
-        </Button>
+        <div className="d-flex gap-2 justify-content-center">
+          <Button
+            variant={isJoin ? 'secondary' : 'success-soft'}
+            size="sm"
+            disabled={isJoin || processingGroupId === group._id}
+            onClick={() => !isJoin && onJoin(group._id)}
+            type="button">
+            {isJoin ? 'Joined' : processingGroupId === group._id ? 'Joining...' : 'Join'}
+          </Button>
+
+          {isJoin && (
+            <Button variant="danger-soft" size="sm" disabled={processingGroupId === group._id} onClick={() => onLeave(group._id)} type="button">
+              {processingGroupId === group._id ? 'Leaving...' : 'Leave'}
+            </Button>
+          )}
+          {onDelete && (
+            <Button variant="danger" size="sm" disabled={deletingGroupId === group._id} onClick={() => onDelete(group._id)}>
+              {deletingGroupId === group._id ? 'Deleting...' : 'Delete'}
+            </Button>
+          )}
+        </div>
       </CardFooter>
     </Card>
   )
@@ -93,17 +111,17 @@ const AllGroups = () => {
   const { user } = useAuthContext()
   const { isTrue: isOpen, toggle } = useToggle()
 
-  // 1. Tab active
+  // Tab active
   const [activeTab, setActiveTab] = useState('created')
 
-  // 2. States nhóm
+  // States nhóm
   const [allGroups, setAllGroups] = useState([])
   const [createdGroups, setCreatedGroups] = useState([])
   const [otherGroups, setOtherGroups] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
 
-  // 3. States Create Group
+  // States Create Group
   const [groupName, setGroupName] = useState('')
   const [description, setDescription] = useState('')
   const [file, setFile] = useState(null)
@@ -111,7 +129,10 @@ const AllGroups = () => {
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
 
-  /** Fetch và phân tách groups */
+  const [processingGroupId, setProcessingGroupId] = useState(null)
+  const [deletingGroupId, setDeletingGroupId] = useState(null)
+
+  // Fetch và phân tách groups
   useEffect(() => {
     const fetchGroups = async () => {
       setLoading(true)
@@ -128,8 +149,6 @@ const AllGroups = () => {
 
         const groups = json.data || []
         setAllGroups(groups)
-
-        // **CHÍNH XÁC** filter theo creator ID
         setCreatedGroups(groups.filter((g) => g.admins?.[0]?._id === user.userId))
         setOtherGroups(groups.filter((g) => g.admins?.[0]?._id !== user.userId))
       } catch (err) {
@@ -140,9 +159,9 @@ const AllGroups = () => {
       }
     }
     fetchGroups()
-  }, [user.token, user.id])
+  }, [user.token, user.userId])
 
-  /** Preview file */
+  // Preview file
   const handleFileChange = (e) => {
     const f = e.target.files?.[0]
     if (f) {
@@ -151,7 +170,7 @@ const AllGroups = () => {
     }
   }
 
-  /** Tạo group mới, chỉ cập nhật state cục bộ */
+  // Tạo group mới, cập nhật state cục bộ
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       setCreateError('Group name is required')
@@ -175,29 +194,22 @@ const AllGroups = () => {
         imageId = upJson.imageId
       }
 
-      const body = { name: groupName, description, imageId }
       const res = await fetch('/api/group/add-group', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ name: groupName, description, imageId }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.message || 'Group creation failed')
 
       const newGroup = json.data
-
-      // **CẬP NHẬT LOCAL STATE**
       setAllGroups((prev) => [newGroup, ...prev])
       setCreatedGroups((prev) => [newGroup, ...prev])
       setOtherGroups((prev) => prev.filter((g) => g._id !== newGroup._id))
-
-      // Chuyển về tab "My Created"
       setActiveTab('created')
-
-      // Đóng modal & reset form
       toggle()
       setGroupName('')
       setDescription('')
@@ -208,6 +220,83 @@ const AllGroups = () => {
       setCreateError(err.message)
     } finally {
       setCreating(false)
+    }
+  }
+
+  // Tham gia group
+  const handleJoinGroup = async (groupId) => {
+    setProcessingGroupId(groupId)
+    try {
+      const res = await fetch(`/api/group/join-group/${groupId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || json.message || 'Join failed')
+
+      setAllGroups((prev) => prev.map((g) => (g._id === groupId ? { ...g, isJoin: true, memberCount: g.memberCount + 1 } : g)))
+      setOtherGroups((prev) => prev.map((g) => (g._id === groupId ? { ...g, isJoin: true, memberCount: g.memberCount + 1 } : g)))
+    } catch (err) {
+      console.error('Join group failed', err)
+    } finally {
+      setProcessingGroupId(null)
+    }
+  }
+
+  const handleLeaveGroup = async (groupId) => {
+    setProcessingGroupId(groupId)
+    try {
+      const res = await fetch(`/api/group/leave-group/${groupId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+      })
+
+      if (!res.ok) {
+        // Nếu không phải JSON, lấy raw text để xem thông báo
+        const errText = await res.text()
+        throw new Error(`Leave failed: ${errText}`)
+      }
+
+      await res.json()
+
+      // Cập nhật lại state như trước
+      setAllGroups((prev) => prev.map((g) => (g._id === groupId ? { ...g, isJoin: false, memberCount: g.memberCount - 1 } : g)))
+      setCreatedGroups((prev) => prev.map((g) => (g._id === groupId ? { ...g, isJoin: false, memberCount: g.memberCount - 1 } : g)))
+      setOtherGroups((prev) => prev.map((g) => (g._id === groupId ? { ...g, isJoin: false, memberCount: g.memberCount - 1 } : g)))
+    } catch (err) {
+      console.error('Leave group failed', err)
+    } finally {
+      setProcessingGroupId(null)
+    }
+  }
+
+  const handleDeleteGroup = async (groupId) => {
+    setDeletingGroupId(groupId)
+    try {
+      const res = await fetch(`/api/group/delete-group/${groupId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+      })
+      if (!res.ok) throw new Error('Delete failed')
+      await res.json()
+
+      // remove group khỏi tất cả các list
+      setAllGroups((prev) => prev.filter((g) => g._id !== groupId))
+      setCreatedGroups((prev) => prev.filter((g) => g._id !== groupId))
+      setOtherGroups((prev) => prev.filter((g) => g._id !== groupId))
+    } catch (err) {
+      console.error('Delete group failed', err)
+    } finally {
+      setDeletingGroupId(null)
     }
   }
 
@@ -230,7 +319,7 @@ const AllGroups = () => {
               <TabContainer activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
                 <Nav variant="tabs">
                   <NavItem>
-                    <NavLink eventKey="created">My Groups</NavLink>
+                    <NavLink eventKey="created">My Created Groups</NavLink>
                   </NavItem>
                   <NavItem>
                     <NavLink eventKey="others">Other Groups</NavLink>
@@ -243,7 +332,13 @@ const AllGroups = () => {
                       <Row className="g-4">
                         {createdGroups.map((grp, i) => (
                           <Col sm={6} lg={4} key={i}>
-                            <GroupCard group={grp} />
+                            <GroupCard
+                              group={grp}
+                              onJoin={handleJoinGroup}
+                              processingGroupId={processingGroupId}
+                              onDelete={handleDeleteGroup}
+                              deletingGroupId={deletingGroupId}
+                            />
                           </Col>
                         ))}
                       </Row>
@@ -257,7 +352,7 @@ const AllGroups = () => {
                       <Row className="g-4">
                         {otherGroups.map((grp, i) => (
                           <Col sm={6} lg={4} key={i}>
-                            <GroupCard group={grp} />
+                            <GroupCard group={grp} onJoin={handleJoinGroup} onLeave={handleLeaveGroup} processingGroupId={processingGroupId} />
                           </Col>
                         ))}
                       </Row>

@@ -8,6 +8,7 @@ import { toSentenceCase } from '@/utils/change-casing'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 const ProfileDropdown = () => {
+  const { userInfo, avatarUrl } = useAuthContext()
   const themeModes = [
     {
       icon: BsSun,
@@ -33,30 +34,23 @@ const ProfileDropdown = () => {
         data-bs-display="static"
         data-bs-toggle="dropdown"
         aria-expanded="false">
-        <img className="avatar-img rounded-2" src={placeholder} alt="avatar" />
+        <img className="avatar-img rounded-2" src={avatarUrl} alt="avatar" />
       </DropdownToggle>
       <DropdownMenu className="dropdown-animation dropdown-menu-end pt-3 small me-md-n3" aria-labelledby="profileDropdown">
         <li className="px-3">
           <div className="d-flex align-items-center position-relative">
             <div className="avatar me-3">
-              <img className="avatar-img rounded-circle" src={placeholder} alt="avatar" />
+              <img className="avatar-img rounded-circle" src={avatarUrl} alt="avatar" />
             </div>
             <div>
               <Link className="h6 stretched-link" to="">
-                User
+                {userInfo?.name || 'User'}
               </Link>
-              <p className="small m-0">Web Developer</p>
+              <p className="small m-0">{userInfo?.university || 'User'}</p>
             </div>
           </div>
           <DropdownItem as={Link} className="btn btn-primary-soft btn-sm my-2 text-center" to="/profile/feed">
             View profile
-          </DropdownItem>
-        </li>
-
-        <li>
-          <DropdownItem as={Link} to="/settings/account">
-            <BsGear className="fa-fw me-2" />
-            Settings &amp; Privacy
           </DropdownItem>
         </li>
         <DropdownDivider />
