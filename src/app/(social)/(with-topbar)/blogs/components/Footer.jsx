@@ -1,8 +1,9 @@
-import { currentYear, developedBy, developedByLink } from '@/context/constants';
-import { Link } from 'react-router-dom';
-import { Col, Container, Row } from 'react-bootstrap';
+import { currentYear, developedBy, developedByLink } from '@/context/constants'
+import { Link } from 'react-router-dom'
+import { Col, Container, Row } from 'react-bootstrap'
 const Footer = () => {
-  return <footer className="bg-mode py-3">
+  return (
+    <footer className="bg-mode py-3">
       <Container>
         <Row>
           <Col md={6}>
@@ -13,34 +14,18 @@ const Footer = () => {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" target="_blank" to={developedByLink}>
-                  Support
-                </Link>
-              </li>
-              <li className="nav-item">
                 <Link className="nav-link" to="">
-                  Docs
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/privacy-terms">
-                  Privacy &amp; terms
+                  Chatbot
                 </Link>
               </li>
             </ul>
           </Col>
           <Col md={6}>
-            <p className="text-center text-md-end mb-0">
-              ©{currentYear}
-              <Link className="text-body" target="_blank" to={developedByLink}>
-                
-                {developedBy}
-              </Link>
-              All rights reserved.
-            </p>
+            <p className="text-center text-md-end mb-0">Developed by PTIT_WEB_GROUP_11</p>
           </Col>
         </Row>
       </Container>
-    </footer>;
-};
-export default Footer;
+    </footer>
+  )
+}
+export default Footer

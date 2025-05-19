@@ -232,8 +232,8 @@ export const socialWithTopbarRoutes = [
     element: <PostDetails />,
   },
   {
-    path: '/blogs',
-    name: 'Blogs',
+    path: '/chatbot',
+    name: 'Chatbot',
     element: <Blogs />,
   },
   {

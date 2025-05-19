@@ -170,8 +170,8 @@ export const APP_MENU_ITEMS = [
       // },
       {
         key: 'pages-blog',
-        label: 'Blog',
-        url: '/blogs',
+        label: 'Chatbot',
+        url: '/chatbot',
         parentKey: 'pages',
       },
       // {

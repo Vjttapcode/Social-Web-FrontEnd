@@ -24,16 +24,16 @@ export const profilePanelLinksData1 = [
     name: 'Personal Feed',
     link: '/profile/feed',
   },
-  // {
-  //   image: personImg,
-  //   name: 'Connections',
-  //   link: '/profile/connections',
-  // },
-  //  {
-  //   image: calendarImg,
-  //   name: 'Events',
-  //   link: '/profile/events'
-  // },
+  {
+    image: personImg,
+    name: 'Chatbot',
+    link: '/chatbot',
+  },
+  {
+    image: handshakeImg,
+    name: 'Messaging',
+    link: '/messaging',
+  },
   {
     image: chatImg,
     name: 'Groups',
