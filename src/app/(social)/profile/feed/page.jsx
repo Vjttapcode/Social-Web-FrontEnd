@@ -1,4 +1,3 @@
-import CreatePostCard from '@/components/cards/CreatePostCard'
 import Posts from './components/Posts'
 import PageMetaData from '@/components/PageMetaData'
 const Feed = () => {

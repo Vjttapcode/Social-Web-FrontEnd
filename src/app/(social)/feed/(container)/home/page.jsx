@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Card, CardBody, CardHeader, CardTitle, Col, Row, Modal, Button, Form } from 'react-bootstrap'
 import { FaPlus } from 'react-icons/fa'
 import Followers from './components/Followers'
-import LoadContentButton from '@/components/LoadContentButton'
 import { useAuthContext } from '@/context/useAuthContext'
 
 const Home = () => {

@@ -1,12 +1,10 @@
 import { lazy, Suspense, useState } from 'react'
 const TopHeader = lazy(() => import('@/components/layout/TopHeader'))
-import GlightBox from '@/components/GlightBox'
-import { useFetchData } from '@/hooks/useFetchData'
 import clsx from 'clsx'
 import { Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Container, Row } from 'react-bootstrap'
 import { BsChatLeftText, BsPatchCheckFill, BsPencilFill, BsPersonX, Bs0CircleFill } from 'react-icons/bs'
+import GlightBox from '../components/GlightBox'
 import { PROFILE_MENU_ITEMS } from '@/assets/data/menu-items'
-import { getAllUsers } from '@/helpers/data'
 import placeholder from '@/assets/images/avatar/placeholder.jpg'
 import background5 from '@/assets/images/bg/05.jpg'
 import { Link, useLocation } from 'react-router-dom'
@@ -18,8 +16,6 @@ import { useEffect } from 'react'
 const Photos = () => {
   const [images, setImages] = useState([])
   const [loading, setLoading] = useState(true)
-
-  // Decode JWT to extract userId
   const token = localStorage.getItem('token')
   let userId = null
   if (token) {
@@ -42,7 +38,6 @@ const Photos = () => {
         if (!res.ok) throw new Error(`Error fetching posts: ${res.status}`)
         const json = await res.json()
         const posts = Array.isArray(json.data) ? json.data : [json.data]
-        // Gather image IDs
         const ids = posts.reduce((acc, p) => {
           if (Array.isArray(p.imageId) && p.imageId.length) acc.push(...p.imageId)
           else if (typeof p.imageId === 'string') acc.push(p.imageId)
@@ -94,53 +89,6 @@ const Photos = () => {
     </>
   )
 }
-// const Friends = () => {
-//   const allFriends = useFetchData(getAllUsers)
-//   return (
-//     <Card>
-//       <CardHeader className="d-sm-flex justify-content-between align-items-center border-0">
-//         <CardTitle>
-//           Friends <span className="badge bg-danger bg-opacity-10 text-danger">230</span>
-//         </CardTitle>
-//         <Button variant="primary-soft" size="sm">
-//           See all friends
-//         </Button>
-//       </CardHeader>
-//       <CardBody className="position-relative pt-0">
-//         <Row className="g-3">
-//           {allFriends?.slice(0, 4).map((friend, idx) => (
-//             <Col xs={6} key={idx}>
-//               <Card className="shadow-none text-center h-100">
-//                 <CardBody className="p-2 pb-0">
-//                   <div
-//                     className={clsx('avatar avatar-xl', {
-//                       'avatar-story': friend.isStory,
-//                     })}>
-//                     <span role="button">
-//                       <img className="avatar-img rounded-circle" src={friend.avatar} alt="" />
-//                     </span>
-//                   </div>
-//                   <h6 className="card-title mb-1 mt-3">
-//                     <Link to=""> {friend.name} </Link>
-//                   </h6>
-//                   <p className="mb-0 small lh-sm">{friend.mutualCount} mutual connections</p>
-//                 </CardBody>
-//                 <div className="card-footer p-2 border-0">
-//                   <button className="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Send message">
-//                     <BsChatLeftText />
-//                   </button>
-//                   <button className="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove friend">
-//                     <BsPersonX />
-//                   </button>
-//                 </div>
-//               </Card>
-//             </Col>
-//           ))}
-//         </Row>
-//       </CardBody>
-//     </Card>
-//   )
-// }
 const ProfileLayout = ({ children }) => {
   const { pathname } = useLocation()
   const [editShow, setEditShow] = useState(false)
@@ -150,7 +98,6 @@ const ProfileLayout = ({ children }) => {
       <Suspense fallback={<Preloader />}>
         <TopHeader />
       </Suspense>
-
       <main>
         <Container>
           <Row className="g-4">
@@ -227,9 +174,6 @@ const ProfileLayout = ({ children }) => {
                 <Col md={6} lg={12}>
                   <Photos />
                 </Col>
-                {/* <Col md={6} lg={12}>
-                  <Friends />
-                </Col> */}
               </Row>
             </Col>
           </Row>

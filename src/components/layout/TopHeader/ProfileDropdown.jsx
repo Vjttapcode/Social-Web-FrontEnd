@@ -1,7 +1,5 @@
 import { Dropdown, DropdownDivider, DropdownItem, DropdownMenu, DropdownToggle, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { BsCardText, BsCircleHalf, BsGear, BsLifePreserver, BsMoonStars, BsPower, BsSun } from 'react-icons/bs'
-import placeholder from '@/assets/images/avatar/placeholder.jpg'
-import { developedByLink } from '@/context/constants'
 import { useAuthContext } from '@/context/useAuthContext'
 import { useLayoutContext } from '@/context/useLayoutContext'
 import { toSentenceCase } from '@/utils/change-casing'

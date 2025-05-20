@@ -1,8 +1,3 @@
-/**
- * Lấy userInfo theo id
- * @param {string} id      // id của UserInfo, hoặc chính là userId tùy backend
- * @param {string} token
- */
 export async function fetchUserInfo(id, token) {
   const resp = await fetch(`/api/user-info/get-user-info/${id}`, {
     headers: {
